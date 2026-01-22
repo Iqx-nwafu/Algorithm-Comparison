@@ -1,0 +1,2 @@
+seed,feasible,J_norm,var_surplus,mean_surplus,cohesion_pen,min_pressure,episodes,samples,random_pool,local_iters
+0,1,3.58525412093233,0.6051802310661387,13.790541304937856,0.3333333333333334,24.164896411121475,10000,2000,2000,10000

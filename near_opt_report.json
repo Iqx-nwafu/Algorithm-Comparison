@@ -1,0 +1,44 @@
+{
+  "best": {
+    "feasible": 1.0,
+    "min_pressure": 24.164896411121475,
+    "mean_surplus": 13.790541304937856,
+    "var_surplus": 0.6051802310661387,
+    "cohesion_pen": 0.3333333333333334,
+    "J_raw": 29.729956636407458,
+    "J_norm": 3.58525412093233
+  },
+  "baseline_branch_first": {
+    "feasible": 1.0,
+    "min_pressure": 16.79285134325864,
+    "mean_surplus": 10.13854276482507,
+    "var_surplus": 3.4158682861015657,
+    "cohesion_pen": 0.0,
+    "J_raw": 30.524690387954838,
+    "J_norm": 5.0
+  },
+  "baseline_random_one": {
+    "feasible": 1.0,
+    "min_pressure": 24.162233755404287,
+    "mean_surplus": 15.218845144620259,
+    "var_surplus": 1.253584981421011,
+    "cohesion_pen": 0.8222222222222224,
+    "J_raw": 35.02066745572577,
+    "J_norm": 4.925364303580258
+  },
+  "gap_vs_branch_first_fraction": 0.282949175813534,
+  "random_pool": {
+    "N": 2000,
+    "count_better_than_best": 0,
+    "percentile_ge_best": 1.0,
+    "p_upper_95_random_beats_best": 0.0014967448951882512
+  },
+  "local_search": {
+    "J_norm_after_local_search": 3.58525412093233,
+    "improvement_fraction": 0.0
+  },
+  "interpretation": {
+    "rule_of_thumb": "若 best 的 percentile_ge_best >= 0.99 且局部搜索改进 <1%，可视为工程近最优（相对随机/邻域）。",
+    "note": "该报告提供经验近最优证据，不等价于严格全局最优证明。"
+  }
+}
