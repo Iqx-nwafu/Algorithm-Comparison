@@ -1,4 +1,0 @@
-name,feasible,violation,var,mean,pair_penalty,chosen_dominates_baseline,baseline_dominates_chosen,pref_rel_to_chosen
-random_best_of_N,True,0.0,0.9077842042811066,15.30273943159975,58.0,True,False,67.8062272567366
-paired_sequential,True,0.0,9.764800732178779,8.938959624525292,0.0,False,False,81.87147410504072
-paired_random,True,0.0,0.47124134249259597,13.67308853356456,0.0,True,False,5.959531833238472
