@@ -1,0 +1,2 @@
+trials,feasible_neighbors,better_pref,better_pareto,p_feasible,p_better_pref_given_feasible,p_better_pareto_given_feasible,best_neighbor_var,best_neighbor_mean,best_neighbor_pair,best_neighbor_pref_rel
+5000.0,5000.0,0.0,140.0,1.0,0.0,0.028,0.36383499103399675,13.185786809641122,0.0,4.999999999999998
