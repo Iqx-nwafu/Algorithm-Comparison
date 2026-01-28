@@ -1,2 +1,0 @@
-trials,feasible_neighbors,p_feasible,better_pref,p_better_pref_given_feasible,ref_J_norm,ref_var,ref_mean,ref_cohesion,ref_min_pressure,best_neighbor_J_norm,best_neighbor_var,best_neighbor_mean,best_neighbor_cohesion,best_neighbor_min_pressure
-5000,5000,1.0,0,0.0,3.58525412093233,0.6051802310661387,13.790541304937856,0.3333333333333334,24.164896411121475,3.58525412093233,0.6051802310661387,13.790541304937856,0.3333333333333334,24.164896411121475
