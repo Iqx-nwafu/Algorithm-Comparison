@@ -1,40 +1,83 @@
-# Multi-objective Rotational Irrigation Grouping and Deep Reinforcement Learning Algorithm Comparison
+<div align="center">
 
-This repository implements the algorithmic prototype described in *Multi-objective allocation of rotational irrigation groups in large-scale tree-structured irrigation pipe networks using a deep multi-objective Q-network*, and provides several baseline algorithms for controlled comparison. The study targets **rotational irrigation grouping** in gravity-fed (self-pressure) drip irrigation pipe networks: terminal outlets (laterals) are partitioned into multiple irrigation groups and operated sequentially within an irrigation cycle. Each group must satisfy **pressure safety constraints** (minimum operating head at every active outlet) while jointly optimizing two objectives: the **mean** and **variance** of redundant (surplus) head, which reflect energy waste and hydraulic non-uniformity, respectively:contentReference[oaicite:2]{index=2}.
+# DMOQN: Deep Multi-Objective Q-Network for Irrigation Scheduling
+# 基于深度多目标Q网络的大型树状管网轮灌调度
 
-## Paper contributions (high level)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c)](https://pytorch.org/)
 
-- **Problem formulation**: The rotational irrigation grouping task is modeled as a multi-objective combinatorial optimization problem with objectives \(F_1\) (mean redundant head) and \(F_2\) (variance of redundant head). Hard constraints include coverage, group-capacity, and minimum operating head constraints:contentReference[oaicite:3]{index=3}. A fast hydraulic evaluator is used to assess candidate schedules efficiently.
-- **Method**: The problem is reformulated as a finite-horizon Markov decision process (MDP). A preference-conditioned multi-objective Q-network is designed with state encoding, action encoding, and preference-weight input. Action masking is used so that every chosen action satisfies the minimum head constraint, and a differential vector reward makes the cumulative reward equivalent to the negative objective values (dense feedback):contentReference[oaicite:4]{index=4}.
-- **Evidence**: In the case study, DMOQN achieves broader Pareto-front coverage than NSGA-II, MOEA/D, and SPEA2, and fills Pareto regions not covered by the baselines:contentReference[oaicite:5]{index=5}. After training, the end-to-end inference time for a full irrigation cycle is **0.561 s**, approximately four orders of magnitude faster than online search (3,800–7,500 s) using conventional multi-objective optimizers:contentReference[oaicite:6]{index=6}.
+[English](#english) | [中文](#chinese)
 
-## Repository layout and file roles
+</div>
 
-This repository includes scripts for the proposed multi-objective reinforcement learning method and comparison baselines, plus a lightweight hydraulic solver.
+---
 
-| File | Role | What it does (core functions) |
-| --- | --- | --- |
-| `tree_evaluator.py` | **Tree-structured hydraulic evaluator** | Implements a fast, graph-traversal-based hydraulic solver for tree-structured irrigation networks. It builds a directed tree from the node and pipe Excel files, computes discharges and head losses (GB/T 50485–2020 power-law friction model), and provides rapid feasibility checks (e.g., minimum working head) and objective evaluation for any candidate irrigation group sequence. The file typically contains Excel-loading helpers (such as `load_nodes_xlsx` and `load_pipes_xlsx`) and core evaluator methods (such as `TreeHydraulicEvaluator.evaluate_group`). |
-| `mo_irrigation_dynamic.py` | **Multi-objective metaheuristics (baselines)** | Implements common multi-objective optimization algorithms (e.g., NSGA-II, SPEA2, MOEA/D, MOPSO) for solving rotational irrigation grouping. It parses command-line arguments, evaluates candidates using `tree_evaluator.py`, and applies evolutionary operators (selection, crossover, mutation, etc.) to approximate a Pareto set. It can be used for offline optimization and as a baseline for online re-optimization under time-varying hydraulic scenarios. |
-| `morl_irrigation_dmoqn.py` | **Dynamic-Weight Deep Multi-Objective Q-Network (DMOQN)** | PyTorch implementation of the preference-conditioned, dynamically weighted Deep Multi-Objective Q-Network described in the paper. It typically contains the environment wrapper (state/action/reward definition), the DMOQN network, replay/optimization logic, and evaluation utilities. The implementation uses **action masking** to exclude hydraulically infeasible actions and a **differential vector reward** so the cumulative reward matches the negative objective values. Entry points commonly include `train_dmoqn` (training), `evaluate` (single preference/scenario evaluation), and `pareto_sweep` (weight sweep to generate a Pareto front). |
-| `run_batch.py` | **Batch runner** | Batch execution script for evaluation. It usually reads the input Excel files, checks that a trained model exists, iterates over a list of source-head \(H_0\) settings, and repeatedly calls `morl_irrigation_dmoqn.py evaluate`, saving results under `runs/`. |
-| `Nodes.xlsx`, `Pipes.xlsx` | **Network topology inputs** | Excel files describing the irrigation network. `Nodes.xlsx` typically stores node IDs and elevations, while `Pipes.xlsx` stores pipe connectivity and attributes (length, diameter, material, etc.). `tree_evaluator.py` reads them to build the network model. |
+<a name="english"></a>
+## 🇬🇧 English Version
 
-### Optional: suggested file naming (for clarity)
+### Overview
 
-If you want a more explicit, paper-aligned naming convention (without changing code logic), you can rename files (or add soft links/aliases) as follows:
+This repository contains the official implementation of the **Dynamic-Weight Deep Multi-Objective Q-Network (DMOQN)** for rotational irrigation scheduling in large-scale tree-structured pipe networks.
 
-- `tree_evaluator.py` → `tree_hydraulic_evaluator.py`
-- `morl_irrigation_dmoqn.py` → `dmoqn_train_eval.py`
-- `mo_irrigation_dynamic.py` → `baselines_moea.py`
-- `run_batch.py` → `run_experiments.py`
+The code supports the research paper:
+> **Multi-objective allocation of rotational irrigation groups in large-scale tree-structured irrigation pipe networks using a deep multi-objective Q-network**
+> *Qianxi Li, Wene Wang, Chenchen Lou*
 
-## Installation & dependencies
+This project addresses the **Rotational Irrigation Scheduling Problem**, optimizing valve grouping sequences in gravity-fed irrigation networks to minimize two conflicting objectives:
+1.  **Variance of Redundant Head ($F_2$):** Ensuring hydraulic uniformity.
+2.  **Mean Redundant Head ($F_1$):** Reducing excess energy and improving safety margins.
 
-1. **Environment**: Python ≥ 3.9 recommended. The RL component depends on PyTorch (recommended 2.0+). Baselines typically depend on standard scientific libraries such as `numpy`, `scipy`, and `pandas`.
-2. **Install dependencies** (from repo root):
+The proposed **DMOQN** method uses a preference-conditioned RL agent to generate Pareto-optimal solutions in real-time (approx. 0.561s per schedule), significantly outperforming traditional evolutionary algorithms in computational efficiency.
+
+### Key Features
+
+* **Preference-Conditioned RL:** The DMOQN agent takes preference weights $\vec{w}$ as input, allowing a single model to cover the entire Pareto front without retraining.
+* **Fast Hydraulic Evaluator:** A custom, graph-traversal-based hydraulic solver (`TreeHydraulicEvaluator`) leverages the acyclic property of tree networks to achieve $O(N)$ complexity, enabling large-scale RL training.
+* **Action Masking:** Hard constraints (Minimum Operating Head $H_{min}$) are enforced directly in the action space, ensuring all generated schedules are physically feasible.
+* **Dynamic Robustness:** The model is trained to adapt to varying source pressure scenarios ($H_0$), ensuring stability under environmental uncertainty.
+* **Comprehensive Baselines:** Includes optimized implementations of **NSGA-II**, **SPEA2**, **MOEA/D**, and **MOPSO** for rigorous benchmarking.
+
+### Repository Structure
+
+#### Core Implementation
+| File | Description |
+| :--- | :--- |
+| **`morl_irrigation_dmoqn.py`** | **[Core Algorithm]** Implements the DMOQN agent, the RL environment (`IrrigationSchedulingEnv`), the preference sampling mechanism, and the training/evaluation loops. |
+| **`tree_evaluator.py`** | **[Simulation Engine]** A lightweight, high-performance hydraulic simulator. It parses Excel topologies, builds a directed tree graph, and calculates head losses using the **GB/T 50485-2020** standard. |
+
+#### Baselines & Utilities
+| File | Description |
+| :--- | :--- |
+| **`mo_irrigation_dynamic.py`** | **[Baselines]** Implementation of meta-heuristic algorithms (NSGA-II, SPEA2, MOEA/D, MOPSO). Designed to share the same hydraulic evaluator and objective functions as DMOQN for fair comparison. |
+| **`run_batch.py`** | **[Utility]** A batch execution script for running parameter sweeps and sensitivity analyses across different source head ($H_0$) scenarios. |
+
+#### Data
+| File | Description |
+| :--- | :--- |
+| **`Nodes.xlsx`** | Defines network topology, including node IDs and elevation data ($Z$). |
+| **`Pipes.xlsx`** | Defines hydraulic properties, including pipe connectivity, length, diameter, and material coefficients. |
+
+### Requirements
+
+* Python 3.9+
+* PyTorch 2.0+ (CUDA recommended for training)
+* NumPy, Pandas
+* OpenPyXL (for Excel I/O)
+
+### Usage
+
+#### 1. Train DMOQN (Proposed Method)
+Train the agent to learn the optimal policy across dynamic hydraulic scenarios.
 
 ```bash
-pip install -r requirements.txt  # or manually install pandas, numpy, torch, openpyxl, etc.
-
-[README.md](https://github.com/user-attachments/files/24989957/README.md)
+python morl_irrigation_dmoqn.py train_dmoqn \
+    --nodes Nodes.xlsx \
+    --pipes Pipes.xlsx \
+    --root J0 \
+    --H0 25.0 \
+    --Hmin 11.59 \
+    --q_lateral 0.012 \
+    --out runs/dmoqn_experiment \
+    --total_steps 400000 \
+    --cuda 1
